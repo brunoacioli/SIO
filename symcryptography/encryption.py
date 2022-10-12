@@ -10,7 +10,7 @@ def main():
     encrypt = sys.argv[3]
 
     fIn = open(fileIn, "r")
-    fOut = open(fileOut, "w")
+    fOut = open(fileOut, "wb")
     keyFile = open("key.txt", "wb")
     fiv = open("iv.txt", "wb")
 
@@ -23,6 +23,8 @@ def main():
     
 
     padder = padding.PKCS7(128).padder()
+    unpadder = padding.PKCS7(128).unpadder()
+
     padded_data = padder.update(bytes(s, 'utf-8'))
     print("padded data " + str(padded_data))
     padded_data += padder.finalize()
@@ -32,24 +34,20 @@ def main():
     if encrypt == "AES":
         
         iv = os.urandom(16)
-        iv2 = str(iv)
-        print(iv == bytes(iv2, 'utf-8'))
-        print("len iv " + str(len(iv)))
-        print("len str(iv) " + str(len(str(iv))))
 
         cipher = Cipher(algorithms.AES(key), modes.CBC(iv))
         encryptor = cipher.encryptor()
         ct = encryptor.update(padded_data) + encryptor.finalize()
 
         fiv.write(iv)
-        fOut.write(str(ct))
+        fOut.write(ct)
 
         decryptor = cipher.decryptor()
-        unpadder = padding.PKCS7(128).unpadder()
+        
         decryptedData = decryptor.update(ct) + decryptor.finalize()
         data = unpadder.update(decryptedData) + unpadder.finalize()
         
-        print(str(data))
+        print(data)
 
     if encrypt == "CHACHA20":
 
@@ -60,18 +58,18 @@ def main():
         encryptor = cipher.encryptor()
         ct = encryptor.update(padded_data)
 
-        fOut.write(str(ct))
+        fOut.write(ct)
 
         decryptor = cipher.decryptor()
-        decryptor.update(ct)
+        decryptedData = decryptor.update(ct)
+        data = unpadder.update(decryptedData) + unpadder.finalize()
+        print(data)
 
 
     fIn.close()
     fOut.close()
     keyFile.close()
     fiv.close()
-
-
 
 
 

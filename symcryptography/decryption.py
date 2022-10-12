@@ -14,7 +14,7 @@ def main():
     iv = open("iv.txt", "rb").read()
     print(len(iv))
 
-    fin = open(fileIn, "r")
+    fin = open(fileIn, "rb")
     fout = open(fileOut, "w")
     s = fin.read()
     unpadder = padding.PKCS7(128).unpadder()
@@ -23,13 +23,15 @@ def main():
     cipher = Cipher(algorithms.AES(key), modes.CBC(iv))
     decryptor = cipher.decryptor()
 
-    #consertar erro    
-    encryptedData = bytes(s, 'utf-8')
-    encryptedData = unpadder.update(encryptedData) + unpadder.finalize()
-    #decryptedData = decryptor.update(encryptedData) + decryptor.finalize()
-    #data = unpadder.update(decryptedData)
-    print(str(encryptedData))
-    fout.write(str(encryptedData))
+    encryptedData = decryptor.update(s) + decryptor.finalize()
+
+    decryptedData = unpadder.update(encryptedData) + unpadder.finalize()
+    
+    print(str(decryptedData))
+    fout.write(str(decryptedData))
+
+    fin.close()
+    fout.close()
     
 
 if __name__ == '__main__':
