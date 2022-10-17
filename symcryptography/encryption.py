@@ -4,16 +4,25 @@ from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
 from cryptography.hazmat.primitives import padding
 from more_itertools import padded
 
+def select_alg(alg_name, key, nonce = None):
+    if alg_name == "AES":
+        return algorithms.AES(key)
+    if alg_name == "CHACHA20":
+        return algorithms.ChaCha20(key, nonce)
+
+def generate_cipher(algorithm, mode = None):
+    return Cipher(algorithm, mode)
+
+
 def main():
     fileIn = sys.argv[1]
     fileOut = sys.argv[2]
-    encrypt = sys.argv[3]
+    alg_name = sys.argv[3]
 
     fIn = open(fileIn, "r")
     fOut = open(fileOut, "wb")
     keyFile = open("key.txt", "wb")
     fiv = open("iv.txt", "wb")
-
     s = fIn.read()
     print(s)
     print(len(s))
@@ -31,11 +40,11 @@ def main():
     print("padded data with finalize " + str(padded_data))
 
     
-    if encrypt == "AES":
+    if alg_name == "AES":
         
         iv = os.urandom(16)
-
-        cipher = Cipher(algorithms.AES(key), modes.CBC(iv))
+        algorithm = select_alg(alg_name, key)
+        cipher = generate_cipher(algorithm, modes.CBC(iv))
         encryptor = cipher.encryptor()
         ct = encryptor.update(padded_data) + encryptor.finalize()
 
@@ -49,12 +58,12 @@ def main():
         
         print(data)
 
-    if encrypt == "CHACHA20":
+    if alg_name == "CHACHA20":
 
         nonce = os.urandom(16)
 
-        algorithm = algorithms.ChaCha20(key, nonce)
-        cipher = Cipher(algorithm, mode=None)
+        algorithm = select_alg(alg_name, key, nonce)
+        cipher = generate_cipher(algorithm, mode=None)
         encryptor = cipher.encryptor()
         ct = encryptor.update(padded_data)
 
